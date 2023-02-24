@@ -11,7 +11,7 @@ import android.graphics.Rect;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.View;
-
+import java.util.Random;
 public class GraphicView extends View
 {
     private Paint   fillPaint, strokePaint;
@@ -69,9 +69,53 @@ public class GraphicView extends View
         _paint.setStrokeWidth(width);
     }
 
+    private void drawLine(Canvas canvas, int xStart, int yStart, int xEnd, int yEnd, int lineColor, int lineWidth){
+        setPaintStroke(strokePaint, lineColor, lineWidth);
+        canvas.drawLine(xStart, yStart, xEnd, yEnd, strokePaint);
+    }
+    private void drawRectangle(Canvas canvas, int xCenter, int yCenter, int width, int height, int lineColor, int lineWidth, int fillColor){
+        setPaintFill(fillPaint, fillColor);
+        canvas.drawRect((int)(xCenter - width/2), (int)(yCenter - height/2), (int)(xCenter + width/2), (int)(height + width/2), fillPaint);
+        setPaintStroke(strokePaint, lineColor, lineWidth);
+        canvas.drawRect((int)(xCenter - width/2), (int)(yCenter - height/2), (int)(xCenter + width/2), (int)(height + width/2), strokePaint);
+
+
+    }
+    private void drawCircle(Canvas canvas, int xCenter, int yCenter, int radius, int lineColor, int lineWidth, int fillColor){
+        setPaintFill(fillPaint, fillColor);
+        canvas.drawCircle(xCenter, yCenter, radius, fillPaint);
+        setPaintStroke(strokePaint, lineColor, lineWidth);
+        canvas.drawCircle(xCenter, yCenter, radius, strokePaint);
+    }
+    private void drawTriangle(Canvas canvas, int x0, int y0, int x1, int y1, int x2, int y2, int lineColor, int lineWidth, int fillColor){
+        mPath.reset();
+        mPath.moveTo(x0, y0);
+        mPath.lineTo(x1, y1);
+        mPath.lineTo(x2, y2);
+        mPath.close();
+        setPaintFill(fillPaint, fillColor);
+        canvas.drawPath(mPath, fillPaint);
+        setPaintStroke(strokePaint, lineColor, lineWidth);
+        canvas.drawPath(mPath, strokePaint);
+    }
+
+    public void drawRandomShape(Canvas canvas, int xStart, int yStart, int xEnd, int yEnd){
+        Random rand = new Random();
+        int randNum = rand.nextInt(4);
+        int randLineWidth = rand.nextInt(9) + 1;
+        int randLineColor = Color.argb(255, rand.nextInt(256), rand.nextInt(256), rand.nextInt(256));
+        int randFillColor = Color.argb(255, rand.nextInt(256), rand.nextInt(256), rand.nextInt(256));
+
+        if(randNum == 1) drawLine(canvas, xStart, yStart, xEnd, yEnd, randLineColor, randLineWidth);
+        else if(randNum==2) drawRectangle(canvas,  xStart + (xEnd - xStart)/2,  yStart + (yEnd - yStart)/2,  xEnd - xStart,  yEnd - yStart,  randLineColor,  randLineWidth,  randFillColor);
+        else if(randNum==3) drawCircle(canvas,  xStart + (xEnd - xStart)/2,  yStart + (yEnd - yStart)/2,  40,  randLineColor,  randLineWidth,  randFillColor);
+        else if(randNum==4) drawTriangle(canvas,  xStart,  yEnd,  xEnd,  yEnd,  xStart + (xEnd - xStart)/2,  yStart,  randLineColor,  randLineWidth,  randFillColor);
+    }
+
     @Override
     protected void onDraw(Canvas canvas)
     {
+        Log.v("canvas", "canvas: " + canvas);
         int backColor = Color.BLUE;
         int lineColor = Color.YELLOW;
         int fillColor = Color.CYAN;
@@ -149,7 +193,7 @@ public class GraphicView extends View
         h1 = bmp.getHeight();
         w1 = bmp.getWidth();
         int x1 = 300, y1 = 300;
-        Rect r1 = new Rect(x1, y1, x1 + w1 / 2, y1 + h1 / 2);
+        Rect r1 = new Rect(x1, y1, (int)(x1 + w1 / 2), (int)(y1 + h1 / 2));
         canvas.drawBitmap(bmp, null, r1, strokePaint);
 
     }
