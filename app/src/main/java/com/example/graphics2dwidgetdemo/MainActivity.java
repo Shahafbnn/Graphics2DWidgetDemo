@@ -39,6 +39,7 @@ public class MainActivity extends AppCompatActivity implements View.OnTouchListe
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN:
                 tvOutput.setText("DOWN: " + x + ", " + y);
+                //Log.v("Shaper", "MainA x0:" + x + "MainA y0:" + y);
                 lastDownClickX = x;
                 lastDownClickY = y;
                 Log.d("Activity.onTouch", "DOWN: x = " + x + ", y = " + y);
@@ -47,7 +48,10 @@ public class MainActivity extends AppCompatActivity implements View.OnTouchListe
                 Log.d("Activity.onTouch", "MOVE: x = " + x + ", y = " + y);
                 break;
             case MotionEvent.ACTION_UP:
-                graphicV.drawRandomShape((Canvas)(v), lastDownClickX, lastDownClickY, x, y);
+                //Log.v("Shaper", "MainA x1:" + x + "MainA y1:" + y);
+
+                graphicV.drawRandomShape(lastDownClickX, lastDownClickY, x, y);
+                graphicV.invalidate();
             case MotionEvent.ACTION_CANCEL:
                 Log.d("Activity.onTouch", "UP: x = " + x + ", y = " + y);
                 String txt = tvOutput.getText().toString();

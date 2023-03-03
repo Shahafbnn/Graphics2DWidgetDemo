@@ -1,23 +1,22 @@
 package com.example.graphics2dwidgetdemo;
 
 import android.content.Context;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
-import android.graphics.Paint;
-import android.graphics.Path;
-import android.graphics.Rect;
+import android.os.Build;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.View;
+import java.util.ArrayList;
 import java.util.Random;
 public class GraphicView extends View
 {
-    private Paint   fillPaint, strokePaint;
-    private Path    mPath;
-    Bitmap bmp;
 
+    private ArrayList<Shape> drawShapes;
+
+    public void addShape(Shape s){
+        drawShapes.add(s);
+    }
     public GraphicView(Context context)
     {
         super(context);
@@ -38,163 +37,39 @@ public class GraphicView extends View
 
     private void init(Context context)
     {
-        // for efficiency reasons, we should perform *all* the new
-        // operations in the constructor
-        // rather than over and over again in OnDraw
-        fillPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        fillPaint.setStyle(Paint.Style.FILL);
-
-        strokePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        strokePaint.setStyle(Paint.Style.STROKE);
-
-        mPath = new Path();
-
-        // Create bitmaps from resources
-        bmp = BitmapFactory.decodeResource(getResources(),
-                R.drawable.dog);
+        drawShapes = new ArrayList<Shape>();
     }
 
-    // update Paint Object for filled shapes (FILL style)
-    private void setPaintFill(Paint _paint, int color)
-    {
-        // _paint.setStyle(Paint.Style.FILL);
-        _paint.setColor(color);
-    }
-
-    // update Paint Object for stroked shapes (STROKE style)
-    private void setPaintStroke(Paint _paint, int color, int width)
-    {
-        // _paint.setStyle(Paint.Style.STROKE);\
-        _paint.setColor(color);
-        _paint.setStrokeWidth(width);
-    }
-
-    private void drawLine(Canvas canvas, int xStart, int yStart, int xEnd, int yEnd, int lineColor, int lineWidth){
-        setPaintStroke(strokePaint, lineColor, lineWidth);
-        canvas.drawLine(xStart, yStart, xEnd, yEnd, strokePaint);
-    }
-    private void drawRectangle(Canvas canvas, int xCenter, int yCenter, int width, int height, int lineColor, int lineWidth, int fillColor){
-        setPaintFill(fillPaint, fillColor);
-        canvas.drawRect((int)(xCenter - width/2), (int)(yCenter - height/2), (int)(xCenter + width/2), (int)(height + width/2), fillPaint);
-        setPaintStroke(strokePaint, lineColor, lineWidth);
-        canvas.drawRect((int)(xCenter - width/2), (int)(yCenter - height/2), (int)(xCenter + width/2), (int)(height + width/2), strokePaint);
 
 
-    }
-    private void drawCircle(Canvas canvas, int xCenter, int yCenter, int radius, int lineColor, int lineWidth, int fillColor){
-        setPaintFill(fillPaint, fillColor);
-        canvas.drawCircle(xCenter, yCenter, radius, fillPaint);
-        setPaintStroke(strokePaint, lineColor, lineWidth);
-        canvas.drawCircle(xCenter, yCenter, radius, strokePaint);
-    }
-    private void drawTriangle(Canvas canvas, int x0, int y0, int x1, int y1, int x2, int y2, int lineColor, int lineWidth, int fillColor){
-        mPath.reset();
-        mPath.moveTo(x0, y0);
-        mPath.lineTo(x1, y1);
-        mPath.lineTo(x2, y2);
-        mPath.close();
-        setPaintFill(fillPaint, fillColor);
-        canvas.drawPath(mPath, fillPaint);
-        setPaintStroke(strokePaint, lineColor, lineWidth);
-        canvas.drawPath(mPath, strokePaint);
-    }
+    public void drawRandomShape(int xStart, int yStart, int xEnd, int yEnd){
+        Log.v("Shaper", "Grafx x0:" + xStart + "Grafx y0:" + yStart);
+        Log.v("Shaper", "Grafx x1:" + xEnd + "Grafx y1:" + yEnd);
+        //int r = (int) Math.min(Math.abs(xEnd - xStart)/2 , Math.abs(yEnd - yStart)/2); //radius
+        int r = (int) (Math.sqrt((xEnd - xStart)*(xEnd - xStart) + (yEnd - yStart)*(yEnd - yStart)))/2; //diameter
+        int Width = xEnd - xStart;
+        int Height = yEnd - yStart;
+        int xCenter = xStart + Width/2;
+        int yCenter = yStart + Height/2;
 
-    public void drawRandomShape(Canvas canvas, int xStart, int yStart, int xEnd, int yEnd){
         Random rand = new Random();
-        int randNum = rand.nextInt(4);
+        int randNum = rand.nextInt(4) + 1;
         int randLineWidth = rand.nextInt(9) + 1;
         int randLineColor = Color.argb(255, rand.nextInt(256), rand.nextInt(256), rand.nextInt(256));
         int randFillColor = Color.argb(255, rand.nextInt(256), rand.nextInt(256), rand.nextInt(256));
 
-        if(randNum == 1) drawLine(canvas, xStart, yStart, xEnd, yEnd, randLineColor, randLineWidth);
-        else if(randNum==2) drawRectangle(canvas,  xStart + (xEnd - xStart)/2,  yStart + (yEnd - yStart)/2,  xEnd - xStart,  yEnd - yStart,  randLineColor,  randLineWidth,  randFillColor);
-        else if(randNum==3) drawCircle(canvas,  xStart + (xEnd - xStart)/2,  yStart + (yEnd - yStart)/2,  40,  randLineColor,  randLineWidth,  randFillColor);
-        else if(randNum==4) drawTriangle(canvas,  xStart,  yEnd,  xEnd,  yEnd,  xStart + (xEnd - xStart)/2,  yStart,  randLineColor,  randLineWidth,  randFillColor);
+        if(randNum == 1) this.addShape(new Line(randLineWidth, randLineColor, xStart, yStart, xEnd, yEnd));
+        else if(randNum==2) this.addShape(new Rectangle(randLineWidth, randLineColor, randFillColor, xCenter, yCenter, Math.abs(Width), Math.abs(Height)));
+        else if(randNum==3) this.addShape(new Circle(randLineWidth, randLineColor, randFillColor, xCenter, yCenter, r ));
+        else if(randNum==4) this.addShape(new Triangle(randLineWidth, randLineColor, randFillColor, xStart, yEnd, xEnd, yEnd, xCenter, yStart));
+        Log.v("Shaper", "" + drawShapes.get(drawShapes.size()-1));
     }
 
     @Override
     protected void onDraw(Canvas canvas)
     {
-        Log.v("canvas", "canvas: " + canvas);
-        int backColor = Color.BLUE;
-        int lineColor = Color.YELLOW;
-        int fillColor = Color.CYAN;
-        int vh, vw;
-        float r = 40;
-
-        vh = this.getHeight();  // unfortunately these can only be set here, not in init()
-        vw = this.getWidth();
-        Log.d("2DGraphics", "vw = " + vw);
-        Log.d("2DGraphics", "vh = " + vh);
-
-        // Clear Screen
-        fillPaint.setColor(backColor);
-        canvas.drawPaint(fillPaint);
-
-        // Straight line using Draw
-        setPaintStroke(strokePaint, lineColor, 1);
-        canvas.drawLine(0, 50, vw, 50, strokePaint);
-
-        // Straight line using PATH - rline (Relative distance)
-        setPaintStroke(strokePaint, lineColor, 2);
-        mPath.reset();
-        mPath.moveTo(0, 75);
-        mPath.rLineTo(vw, 0); // relative distance
-        canvas.drawPath(mPath, strokePaint);
-
-        // Straight line using PATH - line (2 points)
-        setPaintStroke(strokePaint, lineColor, 3);
-        mPath.reset();
-        mPath.moveTo(0, 100);
-        mPath.lineTo(vw, 100);
-        canvas.drawPath(mPath, strokePaint);
-
-        /*** filled & stroked circle using draw ***/
-        setPaintFill(fillPaint, fillColor);
-        canvas.drawCircle(200, 250, r, fillPaint);
-        setPaintStroke(strokePaint, lineColor, 5);
-        canvas.drawCircle(200, 250, r, strokePaint);
-
-
-        /*** filled & stroked rectangle using draw ***/
-        setPaintFill(fillPaint, fillColor);
-        canvas.drawRect(10, 300, 90, 340, fillPaint);
-        setPaintStroke(strokePaint, lineColor, 5);
-        canvas.drawRect(10, 300, 90, 340, strokePaint);
-
-        /*** filled & stroked triangle (path - relative) ***/
-        mPath.reset();
-        int base = 50, h = 70;
-        mPath.moveTo(10, 450);
-        mPath.rLineTo(base, 0);
-        mPath.rLineTo(-base/2, -h);
-        mPath.close();
-        setPaintFill(fillPaint, fillColor);
-        canvas.drawPath(mPath, fillPaint);
-        setPaintStroke(strokePaint, lineColor, 5);
-        canvas.drawPath(mPath, strokePaint);
-
-        /*** filled & stroked triangle (3 points) ***/
-        mPath.reset();
-        mPath.moveTo(200, 450);
-        mPath.lineTo(200, 500);
-        mPath.lineTo(250, 500);
-        mPath.close();
-        setPaintFill(fillPaint, fillColor);
-        canvas.drawPath(mPath, fillPaint);
-        setPaintStroke(strokePaint, lineColor, 5);
-        canvas.drawPath(mPath, strokePaint);
-
-        // Bitmap (dilbert)
-        canvas.drawBitmap(bmp, 300, 130, strokePaint);
-
-        // Bitmap scaled by 2
-        int h1, w1;
-        h1 = bmp.getHeight();
-        w1 = bmp.getWidth();
-        int x1 = 300, y1 = 300;
-        Rect r1 = new Rect(x1, y1, (int)(x1 + w1 / 2), (int)(y1 + h1 / 2));
-        canvas.drawBitmap(bmp, null, r1, strokePaint);
-
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            drawShapes.forEach(shape -> {shape.draw(canvas);});
+        }
     }
 }
